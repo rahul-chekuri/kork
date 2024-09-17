@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.kork.aws.bastion;
 
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+
 import com.amazonaws.util.IOUtils;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.IdentityRepository;
 import com.jcraft.jsch.JSch;
@@ -36,7 +38,11 @@ class RemoteCredentialsSupport {
   private static final JSch jsch = new JSch();
   private static final Logger log = LoggerFactory.getLogger(RemoteCredentialsSupport.class);
   private static final IdentityRepository identityRepository;
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper =
+      JsonMapper.builder()
+          .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
+          .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+          .build();
 
   static {
     IdentityRepository ir = null;
@@ -49,9 +55,6 @@ class RemoteCredentialsSupport {
 
     identityRepository = ir;
     jsch.setIdentityRepository(identityRepository);
-
-    objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
   }
 
   static RemoteCredentials getRemoteCredentials(
