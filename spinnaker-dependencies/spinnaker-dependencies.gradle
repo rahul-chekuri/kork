@@ -64,10 +64,13 @@ dependencies {
   api(platform("software.amazon.awssdk:bom:${versions.awsv2}"))
   api(platform("org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"))
   api(platform("io.strikt:strikt-bom:0.31.0"))
-  api(platform("org.spockframework:spock-bom:2.2-groovy-3.0"))
+  /* groovy dependency that comes with this transitively conflicts with the one that comes with springboot3
+  api(platform("org.spockframework:spock-bom:2.2-groovy-3.0"))*/
+  api(platform("org.spockframework:spock-bom:2.4-M2-groovy-4.0"))
   api(platform("com.oracle.oci.sdk:oci-java-sdk-bom:3.21.0"))
   api(platform("org.testcontainers:testcontainers-bom:1.19.8"))
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
+  api(platform("com.guicedee.services:javax.inject:1.1.1.1-SP1"))
 
   constraints {
     api("cglib:cglib-nodep:3.3.0")
@@ -118,7 +121,7 @@ dependencies {
     api("com.nimbusds:nimbus-jose-jwt:9.37.2")
     api("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
     api("com.nhaarman:mockito-kotlin:1.6.0")
-    api("com.ninja-squad:springmockk:2.0.3")
+    api("com.ninja-squad:springmockk:4.0.0")
     /* Comes with springboot3
     api("com.squareup.okhttp3:logging-interceptor:${versions.okhttp3}")
     api("com.squareup.okhttp3:mockwebserver:${versions.okhttp3}")

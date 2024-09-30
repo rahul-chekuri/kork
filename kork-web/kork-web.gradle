@@ -30,6 +30,7 @@ dependencies {
 
   implementation "com.google.guava:guava"
   implementation "javax.inject:javax.inject:1"
+  implementation "com.guicedee.services:javax.inject"
   implementation("com.netflix.spectator:spectator-web-spring") {
     // exclude transitives since this brings in a newer version of spring (boot)
     // dependencies than we're compatible with (2.2.x for spring boot and 5.2.x
