@@ -219,5 +219,6 @@ dependencies {
     api("org.apache.tomcat.embed:tomcat-embed-core:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-el:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-websocket:${versions.tomcat}")*/
+    api("org.junit.platform:junit-platform-engine:1.10.2")
   }
 }

@@ -24,10 +24,12 @@ dependencies {
   implementation "org.springframework.security:spring-security-core"
   implementation "org.springframework.boot:spring-boot-starter-security"
   implementation "org.springframework.boot:spring-boot-starter-web"
-  compileOnly "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
 }
