@@ -18,31 +18,45 @@ package com.netflix.spinnaker.kork.actuator.endpoint;
 
 import static java.lang.String.format;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import com.netflix.spinnaker.kork.actuator.utils.SanitizerUtils;
+import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.endpoint.SanitizableData;
 import org.springframework.boot.actuate.endpoint.Sanitizer;
+import org.springframework.boot.actuate.endpoint.SanitizingFunction;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
 import org.springframework.core.env.*;
 
 @Endpoint(id = "resolvedEnv")
 public class ResolvedEnvironmentEndpoint {
-
-  private final Sanitizer sanitizer = new Sanitizer();
+  private final Sanitizer sanitizer;
   private final Environment environment;
 
   @Autowired
   public ResolvedEnvironmentEndpoint(
       Environment environment, ResolvedEnvironmentConfigurationProperties properties) {
     this.environment = environment;
+    List<SanitizingFunction> sanitizingFunctions = new ArrayList<>();
     Optional.ofNullable(properties.getKeysToSanitize())
-        .map(p -> p.toArray(new String[0]))
-        .ifPresent(sanitizer::setKeysToSanitize);
+        .orElse(new ArrayList<>())
+        .forEach(
+            p ->
+                sanitizingFunctions.add(
+                    (data) -> {
+                      Pattern pattern = SanitizerUtils.getPattern(p);
+                      if (pattern.matcher(data.getKey()).matches()) {
+                        if (SanitizerUtils.keyIsUriWithUserInfo(pattern)) {
+                          return data.withValue(
+                              SanitizerUtils.sanitizeUris(data.getValue().toString()));
+                        }
+                        return data.withValue(SanitizableData.SANITIZED_VALUE);
+                      }
+                      return data;
+                    }));
+    sanitizer = new Sanitizer(sanitizingFunctions);
   }
 
   @ReadOperation
@@ -53,7 +67,9 @@ public class ResolvedEnvironmentEndpoint {
                 property -> property,
                 property -> {
                   try {
-                    return sanitizer.sanitize(property, environment.getProperty(property));
+                    return sanitizer.sanitize(
+                        new SanitizableData(null, property, environment.getProperty(property)),
+                        true);
                   } catch (Exception e) {
                     return format("Exception occurred: %s", e.getMessage());
                   }

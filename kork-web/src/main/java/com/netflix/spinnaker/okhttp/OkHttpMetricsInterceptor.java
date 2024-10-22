@@ -20,8 +20,8 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.OkHttpMetricsInterceptorProperties;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.Response;
+import jakarta.inject.Provider;
 import java.io.IOException;
-import javax.inject.Provider;
 
 public class OkHttpMetricsInterceptor extends MetricsInterceptor
     implements com.squareup.okhttp.Interceptor {
