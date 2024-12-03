@@ -29,7 +29,7 @@ ext {
     spek             : "1.1.5",
     spek2            : "2.0.9",
     springBoot       : "3.0.13",
-    springCloud      : "2022.0.2",
+    springCloud      : "2022.0.5",
     springfoxSwagger : "3.0.0",
     swagger          : "2.2.22", //this should stay in sync with what springfoxSwagger expects.
 
