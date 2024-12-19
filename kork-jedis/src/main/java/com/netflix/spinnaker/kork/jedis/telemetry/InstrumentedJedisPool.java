@@ -36,7 +36,11 @@ public class InstrumentedJedisPool extends JedisPool {
     this.poolName = poolName;
   }
 
+  @SuppressWarnings("unchecked")
   public GenericObjectPool<Jedis> getInternalPoolReference() {
+    if (delegated == null) {
+      throw new IllegalStateException("Could not get reference to delegate's internal pool");
+    }
     return delegated;
   }
 

@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.kork.telemetry.caffeine;
 
-import static java.util.Objects.requireNonNull;
-
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import com.github.benmanes.caffeine.cache.stats.StatsCounter;
@@ -75,26 +73,20 @@ public class CaffeineStatsCounter implements StatsCounter {
 
   @Override
   public void recordEviction(int weight, RemovalCause cause) {
-    requireNonNull(cause);
     evictionCount.increment();
-    evictionWeight.add(weight);
+    evictionWeight.increment(weight);
   }
 
   @Override
   public CacheStats snapshot() {
     return CacheStats.of(
-        negativeToMaxValue(hitCount.count()),
-        negativeToMaxValue(missCount.count()),
-        negativeToMaxValue(loadSuccessCount.count()),
-        negativeToMaxValue(loadFailureCount.count()),
-        negativeToMaxValue(totalLoadTime.count()),
-        negativeToMaxValue(evictionCount.count()),
-        negativeToMaxValue(evictionWeight.count()));
-  }
-
-  /** Returns {@code value}, if non-negative. Otherwise, returns {@link Long#MAX_VALUE}. */
-  private static long negativeToMaxValue(long value) {
-    return (value >= 0) ? value : Long.MAX_VALUE;
+        hitCount.count(),
+        missCount.count(),
+        loadSuccessCount.count(),
+        loadFailureCount.count(),
+        totalLoadTime.count(),
+        evictionCount.count(),
+        evictionWeight.count());
   }
 
   @Override

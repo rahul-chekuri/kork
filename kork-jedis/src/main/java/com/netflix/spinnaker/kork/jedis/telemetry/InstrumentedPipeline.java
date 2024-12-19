@@ -28,35 +28,31 @@ import java.util.concurrent.Callable;
 import redis.clients.jedis.*;
 import redis.clients.jedis.args.BitOP;
 import redis.clients.jedis.args.GeoUnit;
-import redis.clients.jedis.params.*;
+import redis.clients.jedis.params.BitPosParams;
+import redis.clients.jedis.params.GeoRadiusParam;
+import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.params.SortingParams;
+import redis.clients.jedis.params.ZAddParams;
+import redis.clients.jedis.params.ZIncrByParams;
+import redis.clients.jedis.params.ZParams;
 import redis.clients.jedis.resps.GeoRadiusResponse;
 import redis.clients.jedis.resps.Tuple;
 
 public class InstrumentedPipeline extends Pipeline {
 
-  private Registry registry;
+  private final Registry registry;
   private final Pipeline delegated;
-  private String poolName;
+  private final String poolName;
 
-  public InstrumentedPipeline(Jedis jedis) {
+  public InstrumentedPipeline(Registry registry, Jedis jedis) {
+    this(registry, jedis, "unnamed");
+  }
+
+  public InstrumentedPipeline(Registry registry, Jedis jedis, String poolName) {
     super(jedis);
-    this.delegated = jedis.pipelined();
-  }
-
-  public String getPoolName() {
-    return poolName;
-  }
-
-  public void setPoolName(String poolName) {
-    this.poolName = poolName;
-  }
-
-  public Registry getRegistry() {
-    return registry;
-  }
-
-  public void setRegistry(Registry registry) {
     this.registry = registry;
+    this.delegated = jedis.pipelined();
+    this.poolName = poolName;
   }
 
   private <T> T instrumented(String command, Callable<T> action) {
@@ -81,6 +77,33 @@ public class InstrumentedPipeline extends Pipeline {
                 T result = action.call();
                 registry.counter(invocationId(registry, poolName, command, true, true)).increment();
                 return result;
+              });
+    } catch (Exception e) {
+      registry.counter(invocationId(registry, poolName, command, true, false)).increment();
+      throw new InstrumentedJedisException("could not execute delegate function", e);
+    }
+  }
+
+  private void instrumented(String command, Runnable action) {
+    internalInstrumented(command, Optional.empty(), action);
+  }
+
+  private void instrumented(String command, long payloadSize, Runnable action) {
+    internalInstrumented(command, Optional.of(payloadSize), action);
+  }
+
+  private void internalInstrumented(String command, Optional<Long> payloadSize, Runnable action) {
+    payloadSize.ifPresent(
+        size ->
+            PercentileDistributionSummary.get(
+                    registry, payloadSizeId(registry, poolName, command, true))
+                .record(size));
+    try {
+      PercentileTimer.get(registry, timerId(registry, poolName, command, true))
+          .record(
+              () -> {
+                action.run();
+                registry.counter(invocationId(registry, poolName, command, true, true)).increment();
               });
     } catch (Exception e) {
       registry.counter(invocationId(registry, poolName, command, true, false)).increment();
@@ -540,12 +563,6 @@ public class InstrumentedPipeline extends Pipeline {
   public Response<Long> append(byte[] key, byte[] value) {
     String command = "append";
     return instrumented(command, payloadSize(value), () -> delegated.append(key, value));
-  }
-
-  @Override
-  public Response<Long> decr(String key) {
-    String command = "decr";
-    return instrumented(command, () -> delegated.decr(key));
   }
 
   @Override

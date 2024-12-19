@@ -37,7 +37,7 @@ public interface RedisClientDelegate {
 
   <R> R withMultiClient(Function<JedisCommands, R> f);
 
-  void withMultiClient(Consumer<Transaction> f);
+  void withMultiClient(Consumer<JedisCommands> f);
 
   <R> R withBinaryClient(Function<JedisBinaryCommands, R> f);
 

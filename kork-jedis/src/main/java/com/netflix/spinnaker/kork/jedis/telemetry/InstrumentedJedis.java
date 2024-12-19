@@ -31,7 +31,14 @@ import redis.clients.jedis.args.ClusterResetType;
 import redis.clients.jedis.args.GeoUnit;
 import redis.clients.jedis.args.ListPosition;
 import redis.clients.jedis.exceptions.JedisException;
-import redis.clients.jedis.params.*;
+import redis.clients.jedis.params.BitPosParams;
+import redis.clients.jedis.params.GeoRadiusParam;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.params.SortingParams;
+import redis.clients.jedis.params.ZAddParams;
+import redis.clients.jedis.params.ZIncrByParams;
+import redis.clients.jedis.params.ZParams;
 import redis.clients.jedis.resps.GeoRadiusResponse;
 import redis.clients.jedis.resps.ScanResult;
 import redis.clients.jedis.resps.Slowlog;
@@ -2126,7 +2133,7 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public Pipeline pipelined() {
     String command = "pipelined";
-    return instrumented(command, () -> new InstrumentedPipeline(delegated));
+    return instrumented(command, () -> new InstrumentedPipeline(registry, delegated, poolName));
   }
 
   @Override

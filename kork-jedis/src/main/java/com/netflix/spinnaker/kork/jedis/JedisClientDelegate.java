@@ -68,11 +68,9 @@ public class JedisClientDelegate implements RedisClientDelegate {
   }
 
   @Override
-  public void withMultiClient(Consumer<Transaction> f) {
+  public void withMultiClient(Consumer<JedisCommands> f) {
     try (Jedis jedis = jedisPool.getResource()) {
-      Transaction transaction = jedis.multi();
-      f.accept(transaction);
-      transaction.exec();
+      f.accept(jedis);
     }
   }
 
@@ -106,7 +104,12 @@ public class JedisClientDelegate implements RedisClientDelegate {
 
   @Override
   public void syncPipeline(Pipeline p) {
-    p.sync();
+    if (!(p instanceof Pipeline)) {
+      throw new IllegalArgumentException(
+          "Invalid RedisPipeline implementation: " + p.getClass().getName());
+    }
+
+    ((Pipeline) p).sync();
   }
 
   @Override
